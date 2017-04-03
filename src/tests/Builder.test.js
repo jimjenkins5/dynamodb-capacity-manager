@@ -7,18 +7,108 @@ var _ = require('underscore'),
 
 describe('Builder', function() {
 
-   var builder;
+   var builder,
+       tbl1R = { resourceType: 'table', name: 'Tbl1', tableName: 'Tbl1', capacityType: 'ReadCapacityUnits' },
+       tbl1W = { resourceType: 'table', name: 'Tbl1', tableName: 'Tbl1', capacityType: 'WriteCapacityUnits' },
+       tbl1idR = { resourceType: 'index', name: 'Tbl1::_id', tableName: 'Tbl1', indexName: '_id', capacityType: 'ReadCapacityUnits' },
+       tbl1idW = { resourceType: 'index', name: 'Tbl1::_id', tableName: 'Tbl1', indexName: '_id', capacityType: 'WriteCapacityUnits' },
+       tbl2R = { resourceType: 'table', name: 'Tbl2', tableName: 'Tbl2', capacityType: 'ReadCapacityUnits' },
+       tbl2W = { resourceType: 'table', name: 'Tbl2', tableName: 'Tbl2', capacityType: 'WriteCapacityUnits' },
+       tbl2idR = { resourceType: 'index', name: 'Tbl2::_id', tableName: 'Tbl2', indexName: '_id', capacityType: 'ReadCapacityUnits' },
+       tbl2idW = { resourceType: 'index', name: 'Tbl2::_id', tableName: 'Tbl2', indexName: '_id', capacityType: 'WriteCapacityUnits' };
 
    beforeEach(function() {
       builder = new Builder();
    });
 
-   describe('rule configuration', function() {
+   describe('resource exclusion', function() {
 
-      var tbl1R = { resourceType: 'table', name: 'Tbl1', tableName: 'Tbl1', capacityType: 'ReadCapacityUnits' },
-          tbl1W = { resourceType: 'table', name: 'Tbl1', tableName: 'Tbl1', capacityType: 'WriteCapacityUnits' },
-          tbl1idR = { resourceType: 'index', name: 'Tbl1::_id', tableName: 'Tbl1', indexName: '_id', capacityType: 'ReadCapacityUnits' },
-          tbl1idW = { resourceType: 'index', name: 'Tbl1::_id', tableName: 'Tbl1', indexName: '_id', capacityType: 'WriteCapacityUnits' };
+      it('excludes a particular resource by name - tables', function() {
+         builder.excludeTable(tbl1R.tableName);
+         expect(builder.isExcludedResource(tbl1R)).to.be(true);
+         expect(builder.isExcludedResource(tbl1W)).to.be(true);
+         expect(builder.isExcludedResource(tbl1idR)).to.be(false);
+         expect(builder.isExcludedResource(tbl1idW)).to.be(false);
+         expect(builder.isExcludedResource(tbl2R)).to.be(false);
+         expect(builder.isExcludedResource(tbl2W)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+      });
+
+      it('excludes a particular resource by name - indexes', function() {
+         builder.excludeIndex(tbl1idR.tableName, tbl1idR.indexName);
+         expect(builder.isExcludedResource(tbl1R)).to.be(false);
+         expect(builder.isExcludedResource(tbl1W)).to.be(false);
+         expect(builder.isExcludedResource(tbl1idR)).to.be(true);
+         expect(builder.isExcludedResource(tbl1idW)).to.be(true);
+         expect(builder.isExcludedResource(tbl2R)).to.be(false);
+         expect(builder.isExcludedResource(tbl2W)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+      });
+
+      it('excludes a particular resource for capacity type - tables', function() {
+         builder.excludeTable(tbl1R.tableName, tbl1R.capacityType);
+         expect(builder.isExcludedResource(tbl1R)).to.be(true);
+         expect(builder.isExcludedResource(tbl1W)).to.be(false);
+         expect(builder.isExcludedResource(tbl1idR)).to.be(false);
+         expect(builder.isExcludedResource(tbl1idW)).to.be(false);
+         expect(builder.isExcludedResource(tbl2R)).to.be(false);
+         expect(builder.isExcludedResource(tbl2W)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+
+         builder.excludeTable(tbl1W.tableName, tbl1W.capacityType);
+         expect(builder.isExcludedResource(tbl1R)).to.be(true);
+         expect(builder.isExcludedResource(tbl1W)).to.be(true);
+         expect(builder.isExcludedResource(tbl1idR)).to.be(false);
+         expect(builder.isExcludedResource(tbl1idW)).to.be(false);
+         expect(builder.isExcludedResource(tbl2R)).to.be(false);
+         expect(builder.isExcludedResource(tbl2W)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+      });
+
+      it('excludes a particular resource for capacity type - indexes', function() {
+         builder.excludeIndex(tbl1idR.tableName, tbl1idR.indexName, tbl1idR.capacityType);
+         expect(builder.isExcludedResource(tbl1R)).to.be(false);
+         expect(builder.isExcludedResource(tbl1W)).to.be(false);
+         expect(builder.isExcludedResource(tbl1idR)).to.be(true);
+         expect(builder.isExcludedResource(tbl1idW)).to.be(false);
+         expect(builder.isExcludedResource(tbl2R)).to.be(false);
+         expect(builder.isExcludedResource(tbl2W)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+
+         builder.excludeIndex(tbl1idW.tableName, tbl1idW.indexName, tbl1idW.capacityType);
+         expect(builder.isExcludedResource(tbl1R)).to.be(false);
+         expect(builder.isExcludedResource(tbl1W)).to.be(false);
+         expect(builder.isExcludedResource(tbl1idR)).to.be(true);
+         expect(builder.isExcludedResource(tbl1idW)).to.be(true);
+         expect(builder.isExcludedResource(tbl2R)).to.be(false);
+         expect(builder.isExcludedResource(tbl2W)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+      });
+
+      it('excludes a particular resource when redundance exists', function() {
+         builder.excludeTable(tbl1R.tableName, tbl1R.capacityType);
+         builder.excludeTable(tbl1R.tableName);
+         builder.excludeIndex(tbl2idR.tableName, tbl2idR.indexName);
+         builder.excludeIndex(tbl2idR.tableName, tbl2idR.indexName, tbl2idR.capacityType);
+         expect(builder.isExcludedResource(tbl1R)).to.be(true);
+         expect(builder.isExcludedResource(tbl1W)).to.be(true);
+         expect(builder.isExcludedResource(tbl1idR)).to.be(false);
+         expect(builder.isExcludedResource(tbl1idW)).to.be(false);
+         expect(builder.isExcludedResource(tbl2R)).to.be(false);
+         expect(builder.isExcludedResource(tbl2W)).to.be(false);
+         expect(builder.isExcludedResource(tbl2idR)).to.be(true);
+         expect(builder.isExcludedResource(tbl2idW)).to.be(true);
+      });
+
+   });
+
+   describe('rule configuration', function() {
 
       it('allows config to be added in a chain', function() {
          expect(builder.ruleConfigForTable(tbl1R.tableName, tbl1R.capacityType, {})).to.be(builder);
