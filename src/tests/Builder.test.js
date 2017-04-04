@@ -375,11 +375,63 @@ describe('Builder', function() {
             expect(builder.getConfigForResource(tbl1idW)).to.eql(DCM.DEFAULT_RESOURCE_CONFIG);
          });
 
+         describe('wildcards', function() {
+
+            describe('specific config has precedence', function() {
+               var wildcardConfig = { AbsoluteMinimumProvisioned: 9999 },
+                   specificConfig = { AbsoluteMinimumProvisioned: 8999 },
+                   expectedSpecificConfig;
+
+               expect(wildcardConfig.AbsoluteMinimumProvisioned).to.not.eql(DCM.DEFAULT_RESOURCE_CONFIG.AbsoluteMinimumProvisioned);
+               expect(specificConfig.AbsoluteMinimumProvisioned).to.not.eql(DCM.DEFAULT_RESOURCE_CONFIG.AbsoluteMinimumProvisioned);
+
+               expectedSpecificConfig = _.extend({}, DCM.DEFAULT_RESOURCE_CONFIG, specificConfig);
+
+               it('tables', function() {
+                  builder.ruleConfigForTable('Tbl*', tbl1R.capacityType, wildcardConfig);
+                  builder.ruleConfigForTable(tbl1R.tableName, tbl1R.capacityType, specificConfig);
+                  builder.ruleConfigForTable(tbl1W.tableName, tbl1W.capacityType, specificConfig);
+                  builder.ruleConfigForTable('Tbl*', tbl1W.capacityType, wildcardConfig);
+
+                  expect(builder.getConfigForResource(tbl1R)).to.eql(expectedSpecificConfig);
+                  expect(builder.getConfigForResource(tbl1W)).to.eql(expectedSpecificConfig);
+                  expect(builder.getConfigForResource(tbl1idR)).to.eql(DCM.DEFAULT_RESOURCE_CONFIG);
+                  expect(builder.getConfigForResource(tbl1idW)).to.eql(DCM.DEFAULT_RESOURCE_CONFIG);
+               });
+
+               it('indexes', function() {
+                  builder.ruleConfigForIndex(tbl1idR.tableName, '*', tbl1idR.capacityType, wildcardConfig);
+                  builder.ruleConfigForIndex(tbl1idR.tableName, tbl1idR.indexName, tbl1idR.capacityType, specificConfig);
+                  builder.ruleConfigForIndex(tbl1idW.tableName, tbl1idW.indexName, tbl1idW.capacityType, specificConfig);
+                  builder.ruleConfigForIndex(tbl1idW.tableName, '*', tbl1idW.capacityType, wildcardConfig);
+
+                  expect(builder.getConfigForResource(tbl1R)).to.eql(DCM.DEFAULT_RESOURCE_CONFIG);
+                  expect(builder.getConfigForResource(tbl1W)).to.eql(DCM.DEFAULT_RESOURCE_CONFIG);
+                  expect(builder.getConfigForResource(tbl1idR)).to.eql(expectedSpecificConfig);
+                  expect(builder.getConfigForResource(tbl1idW)).to.eql(expectedSpecificConfig);
+               });
+
+               it('assumes order doesn\'t matter', function() {
+                  builder.ruleConfigForTable(tbl1R.tableName, tbl1R.capacityType, specificConfig);
+                  builder.ruleConfigForTable('Tbl*', tbl1R.capacityType, wildcardConfig);
+                  builder.ruleConfigForTable('Tbl*', tbl1W.capacityType, wildcardConfig);
+                  builder.ruleConfigForTable(tbl1W.tableName, tbl1W.capacityType, specificConfig);
+
+                  expect(builder.getConfigForResource(tbl1R)).to.eql(expectedSpecificConfig);
+                  expect(builder.getConfigForResource(tbl1W)).to.eql(expectedSpecificConfig);
+                  expect(builder.getConfigForResource(tbl1idR)).to.eql(DCM.DEFAULT_RESOURCE_CONFIG);
+                  expect(builder.getConfigForResource(tbl1idW)).to.eql(DCM.DEFAULT_RESOURCE_CONFIG);
+               });
+            });
+
+         });
+
       });
 
       it('allows all config levels play nice together', function() {
          var customConfig,
              customReadConfig,
+             wildcardResourceConfig,
              customResourceConfig,
              expectedConfig;
 
@@ -396,8 +448,12 @@ describe('Builder', function() {
             MinutesOfStatsToIgnore: 8997,
          };
 
+         wildcardResourceConfig = {
+            MinutesOfStatsToRetrieve: 7999,
+            MinutesOfStatsToIgnore: 7998
+         };
+
          customResourceConfig = {
-            MinutesOfStatsToRetrieve: 6999,
             MinutesOfStatsToIgnore: 6998
          };
 
@@ -405,7 +461,7 @@ describe('Builder', function() {
 
          expectedConfig.AbsoluteMinimumProvisioned = customConfig.AbsoluteMinimumProvisioned;
          expectedConfig.AbsoluteMaximumProvisioned = customReadConfig.AbsoluteMaximumProvisioned;
-         expectedConfig.MinutesOfStatsToRetrieve = customResourceConfig.MinutesOfStatsToRetrieve;
+         expectedConfig.MinutesOfStatsToRetrieve = wildcardResourceConfig.MinutesOfStatsToRetrieve;
          expectedConfig.MinutesOfStatsToIgnore = customResourceConfig.MinutesOfStatsToIgnore;
 
          expect(expect.AbsoluteMinimumProvisioned).to.not.eql(DCM.DEFAULT_RESOURCE_CONFIG.AbsoluteMinimumProvisioned);
@@ -415,6 +471,7 @@ describe('Builder', function() {
 
          builder.defaultRuleConfig(customConfig);
          builder.defaultRuleConfig(DCM.READ, customReadConfig);
+         builder.ruleConfigForTable(tbl1R.tableName + '*', tbl1R.capacityType, wildcardResourceConfig);
          builder.ruleConfigForTable(tbl1R.tableName, tbl1R.capacityType, customResourceConfig);
 
          expect(builder.getConfigForResource(tbl1R)).to.eql(expectedConfig);
