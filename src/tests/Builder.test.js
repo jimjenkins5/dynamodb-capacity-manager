@@ -106,6 +106,98 @@ describe('Builder', function() {
          expect(builder.isExcludedResource(tbl2idW)).to.be(true);
       });
 
+      describe('wildcard', function() {
+
+         it('matches resources by name only - tables', function() {
+            builder.excludeTable('Tbl1*');
+            expect(builder.isExcludedResource(tbl1R)).to.be(true);
+            expect(builder.isExcludedResource(tbl1W)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(false);
+            expect(builder.isExcludedResource(tbl2R)).to.be(false);
+            expect(builder.isExcludedResource(tbl2W)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+
+            builder.excludeTable('Tbl*');
+            expect(builder.isExcludedResource(tbl1R)).to.be(true);
+            expect(builder.isExcludedResource(tbl1W)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(false);
+            expect(builder.isExcludedResource(tbl2R)).to.be(true);
+            expect(builder.isExcludedResource(tbl2W)).to.be(true);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+         });
+
+         it('matches resources by name only - indexes', function() {
+            builder.excludeIndex('Tbl1', '*id');
+            expect(builder.isExcludedResource(tbl1R)).to.be(false);
+            expect(builder.isExcludedResource(tbl1W)).to.be(false);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(true);
+            expect(builder.isExcludedResource(tbl2R)).to.be(false);
+            expect(builder.isExcludedResource(tbl2W)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+
+            builder.excludeIndex('Tbl*', '*');
+            expect(builder.isExcludedResource(tbl1R)).to.be(false);
+            expect(builder.isExcludedResource(tbl1W)).to.be(false);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(true);
+            expect(builder.isExcludedResource(tbl2R)).to.be(false);
+            expect(builder.isExcludedResource(tbl2W)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(true);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(true);
+         });
+
+         it('matches resources for capacity type - tables', function() {
+            builder.excludeTable('Tbl1*', DCM.READ);
+            expect(builder.isExcludedResource(tbl1R)).to.be(true);
+            expect(builder.isExcludedResource(tbl1W)).to.be(false);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(false);
+            expect(builder.isExcludedResource(tbl2R)).to.be(false);
+            expect(builder.isExcludedResource(tbl2W)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+
+            builder.excludeTable('Tbl*', DCM.WRITE);
+            expect(builder.isExcludedResource(tbl1R)).to.be(true);
+            expect(builder.isExcludedResource(tbl1W)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(false);
+            expect(builder.isExcludedResource(tbl2R)).to.be(false);
+            expect(builder.isExcludedResource(tbl2W)).to.be(true);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+         });
+
+         it('matches resources for capacity type - indexes', function() {
+            builder.excludeIndex('Tbl1', '*id', DCM.READ);
+            expect(builder.isExcludedResource(tbl1R)).to.be(false);
+            expect(builder.isExcludedResource(tbl1W)).to.be(false);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(false);
+            expect(builder.isExcludedResource(tbl2R)).to.be(false);
+            expect(builder.isExcludedResource(tbl2W)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+
+            builder.excludeIndex('Tbl*', '*', DCM.WRITE);
+            expect(builder.isExcludedResource(tbl1R)).to.be(false);
+            expect(builder.isExcludedResource(tbl1W)).to.be(false);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(true);
+            expect(builder.isExcludedResource(tbl2R)).to.be(false);
+            expect(builder.isExcludedResource(tbl2W)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(true);
+         });
+
+      });
+
    });
 
    describe('rule configuration', function() {
