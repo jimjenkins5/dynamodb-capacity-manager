@@ -152,6 +152,28 @@ describe('Builder', function() {
             expect(builder.isExcludedResource(tbl2idW)).to.be(true);
          });
 
+         it('matches resources by name only - tables w/ indexes', function() {
+            builder.excludeTable('Tbl1*', undefined, true);
+            expect(builder.isExcludedResource(tbl1R)).to.be(true);
+            expect(builder.isExcludedResource(tbl1W)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(true);
+            expect(builder.isExcludedResource(tbl2R)).to.be(false);
+            expect(builder.isExcludedResource(tbl2W)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+
+            builder.excludeTable('Tbl*', undefined, true);
+            expect(builder.isExcludedResource(tbl1R)).to.be(true);
+            expect(builder.isExcludedResource(tbl1W)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(true);
+            expect(builder.isExcludedResource(tbl2R)).to.be(true);
+            expect(builder.isExcludedResource(tbl2W)).to.be(true);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(true);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(true);
+         });
+
          it('matches resources for capacity type - tables', function() {
             builder.excludeTable('Tbl1*', DCM.READ);
             expect(builder.isExcludedResource(tbl1R)).to.be(true);
@@ -192,6 +214,28 @@ describe('Builder', function() {
             expect(builder.isExcludedResource(tbl1idW)).to.be(true);
             expect(builder.isExcludedResource(tbl2R)).to.be(false);
             expect(builder.isExcludedResource(tbl2W)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(true);
+         });
+
+         it('matches resources for capacity type - tables w/ indexes', function() {
+            builder.excludeTable('Tbl1*', DCM.READ, true);
+            expect(builder.isExcludedResource(tbl1R)).to.be(true);
+            expect(builder.isExcludedResource(tbl1W)).to.be(false);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(false);
+            expect(builder.isExcludedResource(tbl2R)).to.be(false);
+            expect(builder.isExcludedResource(tbl2W)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idR)).to.be(false);
+            expect(builder.isExcludedResource(tbl2idW)).to.be(false);
+
+            builder.excludeTable('Tbl*', DCM.WRITE, true);
+            expect(builder.isExcludedResource(tbl1R)).to.be(true);
+            expect(builder.isExcludedResource(tbl1W)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idR)).to.be(true);
+            expect(builder.isExcludedResource(tbl1idW)).to.be(true);
+            expect(builder.isExcludedResource(tbl2R)).to.be(false);
+            expect(builder.isExcludedResource(tbl2W)).to.be(true);
             expect(builder.isExcludedResource(tbl2idR)).to.be(false);
             expect(builder.isExcludedResource(tbl2idW)).to.be(true);
          });
